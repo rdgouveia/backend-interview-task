@@ -27,3 +27,17 @@ export const authenticate = async (ctx: Context, next: Next) => {
     ctx.body = { error: "Invalid token" };
   }
 };
+
+export const authorize = (roles: string[]) => {
+  return async (ctx: Context, next: Next) => {
+    const userRole = ctx.state.user["cognito:groups"]?.[0] || "user";
+
+    if (!roles.includes(userRole)) {
+      ctx.status = 403;
+      ctx.body = { error: "Insufficient permissions" };
+      return;
+    }
+
+    await next();
+  };
+};

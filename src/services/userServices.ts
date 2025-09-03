@@ -32,3 +32,12 @@ export const getUser = async (email: string) => {
 
   return userData;
 };
+
+export const getUsers = async (page: number, limit: number) => {
+  const users = await userRepository.find({
+    skip: page * limit,
+    take: limit + 1,
+  });
+
+  return users;
+};

@@ -1,12 +1,16 @@
 import type { Context } from "koa";
-import { findOrCreateUser, getUser } from "../services/userServices.js";
+import {
+  findOrCreateUser,
+  getUser,
+  getUsers,
+} from "../services/userServices.js";
 import { signUp, login } from "../services/cognitoService.js";
 import type { IUser } from "../types";
-import userValidate from "./userSchema.js";
+import { pagination, userBody } from "./userSchema.js";
 
 export const auth = async (ctx: Context) => {
   try {
-    const params = userValidate.validate(ctx.request.body);
+    const params = userBody.validate(ctx.request.body);
 
     if (params.error) {
       if (params.error.details[0]?.path[0] === "password") {
@@ -50,6 +54,32 @@ export const getMe = async (ctx: Context) => {
 
     return (ctx.body = userData);
   } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: "Internal server error" };
+  }
+};
+
+export const allUsers = async (ctx: Context) => {
+  const params = pagination.validate(ctx.request.query);
+
+  if (params.error) {
+    ctx.status = 400;
+    ctx.body = { error: params.error.details[0]?.message };
+    return;
+  }
+
+  try {
+    const users = await getUsers(params.value.page, params.value.limit);
+
+    let morePages = false;
+    if (users.length > params.value.limit) {
+      morePages = true;
+      users.pop();
+    }
+
+    return (ctx.body = { users, morePages });
+  } catch (error) {
+    console.log(error);
     ctx.status = 500;
     ctx.body = { error: "Internal server error" };
   }

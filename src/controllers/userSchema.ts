@@ -1,6 +1,6 @@
 import Joi from "joi";
 
-export default Joi.object({
+export const userBody = Joi.object({
   name: Joi.string().required(),
   email: Joi.string()
     .email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } })
@@ -13,4 +13,9 @@ export default Joi.object({
     )
     .required(),
   group: Joi.string().valid("admin", "user").required(),
+});
+
+export const pagination = Joi.object({
+  page: Joi.number().required(),
+  limit: Joi.number().required(),
 });

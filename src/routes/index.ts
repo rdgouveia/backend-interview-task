@@ -1,6 +1,6 @@
 import Router from "@koa/router";
-import { auth, getMe } from "../controllers/userController.js";
-import { authenticate } from "../middlewares/auth.js";
+import { auth, getMe, allUsers } from "../controllers/userController.js";
+import { authenticate, authorize } from "../middlewares/auth.js";
 
 const router = new Router();
 
@@ -9,5 +9,6 @@ router.post("/auth", auth);
 
 // Private route
 router.get("/me", authenticate, getMe);
+router.get("/users", authenticate, authorize(["admin"]), allUsers);
 
 export default router;
