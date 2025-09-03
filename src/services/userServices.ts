@@ -24,3 +24,11 @@ export const findOrCreateUser = async (user: IUser) => {
 
   return { user, isNew: false };
 };
+
+export const getUser = async (email: string) => {
+  const userData = await userRepository.findOne({
+    where: { email },
+  });
+
+  return userData;
+};

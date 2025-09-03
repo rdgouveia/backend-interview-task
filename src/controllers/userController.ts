@@ -1,5 +1,5 @@
 import type { Context } from "koa";
-import { findOrCreateUser } from "../services/userServices.js";
+import { findOrCreateUser, getUser } from "../services/userServices.js";
 import { signUp, login } from "../services/cognitoService.js";
 import type { IUser } from "../types";
 import userValidate from "./userSchema.js";
@@ -38,6 +38,17 @@ export const auth = async (ctx: Context) => {
     }
 
     return (ctx.body = token?.AuthenticationResult);
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: "Internal server error" };
+  }
+};
+
+export const getMe = async (ctx: Context) => {
+  try {
+    const userData = await getUser(ctx.state.user.username);
+
+    return (ctx.body = userData);
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: "Internal server error" };
