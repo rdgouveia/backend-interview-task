@@ -24,9 +24,6 @@ export class User {
   @Column({ default: false, type: "boolean" })
   declare isOnboarded: boolean;
 
-  @Column({ nullable: true, type: "text" })
-  declare cognitoId: string;
-
   @CreateDateColumn()
   declare createdAt: Date;
 
