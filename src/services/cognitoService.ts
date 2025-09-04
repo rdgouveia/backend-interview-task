@@ -64,3 +64,55 @@ export const signUp = async (user: IUser) => {
 export const login = async (user: IUser) => {
   return await getToken(user);
 };
+
+export const editUserCognito = async (email: string, changes: any) => {
+  if (changes.name) {
+    const params = {
+      UserPoolId: process.env.AWS_COGNITO_USER_POOL_ID as string,
+      Username: email,
+      UserAttributes: [
+        {
+          Name: "name",
+          Value: changes.name,
+        },
+      ],
+    };
+
+    try {
+      await cognito.adminUpdateUserAttributes(params).promise();
+    } catch (error) {
+      console.error("Error updating user attributes:", error);
+      throw error;
+    }
+  }
+
+  if (changes.group.new) {
+    const newGroupParams = {
+      GroupName: changes.group.new,
+      UserPoolId: process.env.AWS_COGNITO_USER_POOL_ID as string,
+      Username: email,
+    };
+
+    try {
+      await cognito.adminAddUserToGroup(newGroupParams).promise();
+    } catch (error) {
+      console.error("Error updating user attributes:", error);
+      throw error;
+    }
+
+    const oldGroupParams = {
+      GroupName: changes.group.old,
+      UserPoolId: process.env.AWS_COGNITO_USER_POOL_ID as string,
+      Username: email,
+    };
+
+    try {
+      await cognito.adminRemoveUserFromGroup(oldGroupParams).promise();
+    } catch (error) {
+      console.error("Error updating user attributes:", error);
+      throw error;
+    }
+  }
+
+  return true;
+};

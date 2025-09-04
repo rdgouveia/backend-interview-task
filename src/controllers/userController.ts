@@ -3,14 +3,20 @@ import {
   findOrCreateUser,
   getUser,
   getUsers,
+  editUsers,
 } from "../services/userServices.js";
-import { signUp, login } from "../services/cognitoService.js";
+import { signUp, login, editUserCognito } from "../services/cognitoService.js";
 import type { IUser } from "../types";
-import { pagination, userBody } from "./userSchema.js";
+import {
+  pagination,
+  createUserBody,
+  editUserBody,
+  editUserQuery,
+} from "./userSchema.js";
 
 export const auth = async (ctx: Context) => {
   try {
-    const params = userBody.validate(ctx.request.body);
+    const params = createUserBody.validate(ctx.request.body);
 
     if (params.error) {
       if (params.error.details[0]?.path[0] === "password") {
@@ -83,4 +89,71 @@ export const allUsers = async (ctx: Context) => {
     ctx.status = 500;
     ctx.body = { error: "Internal server error" };
   }
+};
+
+export const editUser = async (ctx: Context) => {
+  const params = editUserBody.validate(ctx.request.body);
+  const query = editUserQuery.validate(ctx.request.query);
+
+  if (params.error) {
+    ctx.status = 400;
+    ctx.body = { error: params.error.details[0]?.message };
+    return;
+  }
+
+  if (query.error) {
+    ctx.status = 400;
+    ctx.body = { error: query.error.details[0]?.message };
+    return;
+  }
+
+  const noAdminPermission =
+    ctx.state.user["cognito:groups"]?.[0] !== "admin" &&
+    ctx.state.user.username !== query.value.email;
+
+  if (noAdminPermission) {
+    ctx.status = 403;
+    ctx.body = { error: "Only admin users can edit other users." };
+    return;
+  }
+
+  const noPermission =
+    ctx.state.user["cognito:groups"]?.[0] !== "admin" && params.value.group;
+
+  if (noPermission) {
+    ctx.status = 403;
+    ctx.body = { error: "Only admins can update group" };
+    return;
+  }
+
+  const userToUpdate = await getUser(query.value.email);
+
+  if (!userToUpdate) {
+    ctx.status = 404;
+    ctx.body = { error: "User not found" };
+    return;
+  }
+
+  try {
+    await editUserCognito(query.value.email, {
+      name: params.value.name,
+      group: { new: params.value.group, old: userToUpdate?.role },
+    });
+  } catch (error) {
+    console.log(error);
+    ctx.status = 500;
+    ctx.body = { error: "Error while editing user on Cognito" };
+    return;
+  }
+
+  try {
+    await editUsers(query.value.email, params.value);
+  } catch (error) {
+    console.log(error);
+    ctx.status = 500;
+    ctx.body = { error: "Error while editing user on Database" };
+    return;
+  }
+
+  return (ctx.body = { success: true });
 };

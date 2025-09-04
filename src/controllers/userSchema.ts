@@ -1,6 +1,6 @@
 import Joi from "joi";
 
-export const userBody = Joi.object({
+export const createUserBody = Joi.object({
   name: Joi.string().required(),
   email: Joi.string()
     .email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } })
@@ -18,4 +18,15 @@ export const userBody = Joi.object({
 export const pagination = Joi.object({
   page: Joi.number().required(),
   limit: Joi.number().required(),
+});
+
+export const editUserQuery = Joi.object({
+  email: Joi.string()
+    .email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } })
+    .required(),
+});
+
+export const editUserBody = Joi.object({
+  name: Joi.string().optional(),
+  group: Joi.string().valid("admin", "user").optional(),
 });

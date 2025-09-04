@@ -41,3 +41,12 @@ export const getUsers = async (page: number, limit: number) => {
 
   return users;
 };
+
+export const editUsers = async (email: string, changes: any) => {
+  const user = await userRepository.update(
+    { email },
+    { name: changes.name, role: changes.role }
+  );
+
+  return user;
+};
