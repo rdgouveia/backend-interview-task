@@ -23,7 +23,6 @@ Uma API robusta para gerenciamento de usuários com autenticação AWS Cognito, 
 - **Autenticação**: AWS Cognito
 - **Validação**: Joi
 - **Documentação**: Swagger/OpenAPI
-- **Testes**: Jest
 
 ## 📋 Pré-requisitos
 
