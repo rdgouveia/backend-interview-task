@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { AppDataSource } from "./src/config/database.js";
 import bodyParser from "koa-bodyparser";
 import router from "./src/routes";
+import { swaggerUi } from "./src/middlewares/swagger.js";
 
 dotenv.config();
 const app = new Koa();
@@ -10,6 +11,7 @@ const app = new Koa();
 app.use(bodyParser());
 app.use(router.routes());
 app.use(router.allowedMethods());
+app.use(swaggerUi);
 
 app.use(async (ctx, next) => {
   if (ctx.path === "/health") {
