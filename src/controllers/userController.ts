@@ -15,29 +15,37 @@ import {
 } from "./userSchema.js";
 
 export const auth = async (ctx: Context) => {
-  try {
-    const params = createUserBody.validate(ctx.request.body);
+  const params = createUserBody.validate(ctx.request.body);
 
-    if (params.error) {
-      if (params.error.details[0]?.path[0] === "password") {
-        ctx.status = 400;
-        ctx.body = {
-          error:
-            "Password is required and must contain at least: 1 uppercase letter, 1 lowercase letter, 1 number, 1 special character, and at least 8 characters",
-        };
-      } else {
-        ctx.status = 400;
-        ctx.body = { error: params.error.details[0]?.message };
-      }
+  if (params.error) {
+    if (params.error.details[0]?.path[0] === "password") {
+      ctx.status = 400;
+      ctx.body = {
+        error:
+          "Password is required and must contain at least: 1 uppercase letter, 1 lowercase letter, 1 number, 1 special character, and at least 8 characters",
+      };
+    } else {
+      ctx.status = 400;
+      ctx.body = { error: params.error.details[0]?.message };
+    }
+    return;
+  }
+
+  const user: IUser = {
+    name: params.value.name,
+    email: params.value.email,
+    password: params.value.password,
+    group: params.value.group,
+  };
+
+  try {
+    const userExists = await getUser(user.email);
+
+    if (userExists) {
+      ctx.status = 400;
+      ctx.body = { error: "User already exists" };
       return;
     }
-
-    const user: IUser = {
-      name: params.value.name,
-      email: params.value.email,
-      password: params.value.password,
-      group: params.value.group,
-    };
 
     const userData = await findOrCreateUser(user);
 

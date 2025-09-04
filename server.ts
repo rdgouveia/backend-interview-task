@@ -2,7 +2,7 @@ import Koa from "koa";
 import dotenv from "dotenv";
 import { AppDataSource } from "./src/config/database.js";
 import bodyParser from "koa-bodyparser";
-import router from "./src/routes";
+import router from "./src/routes/index.js";
 import { swaggerUi } from "./src/middlewares/swagger.js";
 
 dotenv.config();
